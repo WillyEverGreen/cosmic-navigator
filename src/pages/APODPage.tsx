@@ -10,6 +10,9 @@ const APODPage = () => {
   const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [imageError, setImageError] = useState(false);
+
+  const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1200';
 
   const formatDateForApi = (date: Date) => {
     return date.toISOString().split('T')[0];
@@ -17,6 +20,7 @@ const APODPage = () => {
 
   const fetchData = async (date: Date) => {
     setLoading(true);
+    setImageError(false);
     const data = await fetchApod(formatDateForApi(date));
     setApod(data);
     setLoading(false);
@@ -35,7 +39,11 @@ const APODPage = () => {
   const goToNextDay = () => {
     const next = new Date(currentDate);
     next.setDate(next.getDate() + 1);
-    if (next <= new Date()) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    next.setHours(0, 0, 0, 0);
+    // Don't allow navigating to future dates
+    if (next <= today) {
       setCurrentDate(next);
     }
   };
@@ -44,7 +52,9 @@ const APODPage = () => {
     setCurrentDate(new Date());
   };
 
-  const isToday = formatDateForApi(currentDate) === formatDateForApi(new Date());
+  const today = new Date();
+  const isToday = formatDateForApi(currentDate) === formatDateForApi(today);
+  const isFutureDate = currentDate > today;
 
   if (loading && !apod) {
     return (
@@ -136,10 +146,11 @@ const APODPage = () => {
             ) : (
               <>
                 <img
-                  src={apod?.url}
+                  src={imageError ? FALLBACK_IMAGE : apod?.url}
                   alt={apod?.title}
                   className="w-full rounded-xl object-cover cursor-pointer"
                   onClick={() => setIsFullscreen(true)}
+                  onError={() => setImageError(true)}
                 />
                 <button
                   onClick={() => setIsFullscreen(true)}

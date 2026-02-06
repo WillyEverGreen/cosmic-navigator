@@ -6,7 +6,7 @@ const NASA_API_KEY = 'DEMO_KEY'; // Replace with your NASA API key for higher ra
 // ISS Position API
 export async function fetchIssPosition(): Promise<IssPosition> {
   try {
-    const response = await fetch('http://api.open-notify.org/iss-now.json');
+    const response = await fetch('https://api.open-notify.org/iss-now.json');
     if (!response.ok) throw new Error(`ISS API error: ${response.status}`);
     
     const data = await response.json();
@@ -128,22 +128,37 @@ export async function fetchSpaceWeather(): Promise<SpaceWeatherData> {
 
 // NASA APOD API
 export async function fetchApod(date?: string): Promise<ApodResponse> {
+  // Fallback data for when API is unavailable or rate limited
+  const fallbackData: ApodResponse = {
+    date: date || new Date().toISOString().split('T')[0],
+    title: 'The Pillars of Creation - Eagle Nebula',
+    explanation: 'These towering tendrils of cosmic dust and gas sit at the heart of the Eagle Nebula (M16). These pillars are part of a small region of the Eagle Nebula, a vast star-forming region 6,500 light-years from Earth. The so-called Pillars of Creation are part of an active star-forming region within the nebula and hide newborn stars in their wispy columns of cold interstellar gas and dust.',
+    url: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1200',
+    hdurl: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=2000',
+    media_type: 'image',
+    copyright: 'NASA/ESA/Hubble Heritage Team',
+  };
+
   try {
     const dateParam = date ? `&date=${date}` : '';
     const response = await fetch(`https://api.nasa.gov/planetary/apod?api_key=${NASA_API_KEY}${dateParam}`);
-    if (!response.ok) throw new Error(`NASA API error: ${response.status}`);
+    
+    // Handle rate limiting gracefully
+    if (response.status === 429) {
+      console.warn('NASA API rate limit reached, using fallback data');
+      return fallbackData;
+    }
+    
+    if (!response.ok) {
+      console.warn(`NASA API error: ${response.status}, using fallback data`);
+      return fallbackData;
+    }
     
     const data = await response.json();
     return data;
   } catch (error) {
     console.error('APOD fetch error:', error);
-    return {
-      date: date || new Date().toISOString().split('T')[0],
-      title: 'The Cosmos Awaits',
-      explanation: 'Unable to fetch today\'s image. Please try again later.',
-      url: 'https://apod.nasa.gov/apod/image/2402/NGC1566_HubbleOdenthal_1080.jpg',
-      media_type: 'image',
-    };
+    return fallbackData;
   }
 }
 
