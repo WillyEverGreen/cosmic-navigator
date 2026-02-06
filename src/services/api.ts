@@ -210,3 +210,391 @@ export async function fetchSpaceNews(limit: number = 10): Promise<SpaceNewsRespo
     return { count: FALLBACK_NEWS.length, results: FALLBACK_NEWS.slice(0, limit) };
   }
 }
+
+// Aurora Forecast API (NOAA)
+export interface AuroraForecast {
+  observationTime: string;
+  forecastTime: string;
+  kpIndex: number;
+  auroraActivity: 'none' | 'low' | 'moderate' | 'high' | 'extreme';
+  visibleLatitude: number; // Minimum latitude where aurora is visible
+}
+
+export async function fetchAuroraForecast(): Promise<AuroraForecast> {
+  try {
+    // Fetch current Kp index from NOAA
+    const response = await fetch('https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json');
+    if (!response.ok) throw new Error('Aurora API error');
+    
+    const data = await response.json();
+    const latest = data[data.length - 1];
+    const kpValue = parseFloat(latest[1]) || 2;
+    
+    // Calculate aurora activity level based on Kp
+    let auroraActivity: AuroraForecast['auroraActivity'] = 'none';
+    let visibleLatitude = 70;
+    
+    if (kpValue >= 8) {
+      auroraActivity = 'extreme';
+      visibleLatitude = 40;
+    } else if (kpValue >= 6) {
+      auroraActivity = 'high';
+      visibleLatitude = 50;
+    } else if (kpValue >= 4) {
+      auroraActivity = 'moderate';
+      visibleLatitude = 55;
+    } else if (kpValue >= 2) {
+      auroraActivity = 'low';
+      visibleLatitude = 65;
+    }
+    
+    return {
+      observationTime: latest[0],
+      forecastTime: new Date().toISOString(),
+      kpIndex: kpValue,
+      auroraActivity,
+      visibleLatitude,
+    };
+  } catch (error) {
+    console.error('Aurora fetch error:', error);
+    return {
+      observationTime: new Date().toISOString(),
+      forecastTime: new Date().toISOString(),
+      kpIndex: 2,
+      auroraActivity: 'low',
+      visibleLatitude: 65,
+    };
+  }
+}
+
+// Geomagnetic Storm Alert API (NASA DONKI)
+export interface GeomagneticStorm {
+  id: string;
+  startTime: string;
+  kpIndex: number;
+  intensity: string;
+  link: string;
+}
+
+export async function fetchGeomagneticStorms(): Promise<GeomagneticStorm[]> {
+  try {
+    const endDate = new Date().toISOString().split('T')[0];
+    const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
+    const response = await fetch(
+      `https://api.nasa.gov/DONKI/GST?startDate=${startDate}&endDate=${endDate}&api_key=${NASA_API_KEY}`
+    );
+    
+    if (!response.ok) throw new Error('GST API error');
+    
+    const data = await response.json();
+    
+    return data.map((storm: any) => ({
+      id: storm.gstID,
+      startTime: storm.startTime,
+      kpIndex: storm.allKpIndex?.[0]?.kpIndex || 5,
+      intensity: storm.allKpIndex?.[0]?.source || 'G1',
+      link: storm.link,
+    }));
+  } catch (error) {
+    console.error('GST fetch error:', error);
+    return [];
+  }
+}
+
+// Solar Flare API (NASA DONKI)
+export interface SolarFlare {
+  id: string;
+  beginTime: string;
+  peakTime: string;
+  endTime: string;
+  classType: string;
+  sourceLocation: string;
+}
+
+export async function fetchSolarFlares(): Promise<SolarFlare[]> {
+  try {
+    const endDate = new Date().toISOString().split('T')[0];
+    const startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
+    const response = await fetch(
+      `https://api.nasa.gov/DONKI/FLR?startDate=${startDate}&endDate=${endDate}&api_key=${NASA_API_KEY}`
+    );
+    
+    if (!response.ok) throw new Error('FLR API error');
+    
+    const data = await response.json();
+    
+    return data.slice(0, 10).map((flare: any) => ({
+      id: flare.flrID,
+      beginTime: flare.beginTime,
+      peakTime: flare.peakTime,
+      endTime: flare.endTime,
+      classType: flare.classType,
+      sourceLocation: flare.sourceLocation || 'Unknown',
+    }));
+  } catch (error) {
+    console.error('FLR fetch error:', error);
+    return [];
+  }
+}
+
+// Astronomical Events (calculated based on known dates)
+export interface AstronomicalEvent {
+  id: string;
+  name: string;
+  type: 'meteor_shower' | 'eclipse' | 'planet_conjunction' | 'comet' | 'aurora' | 'supermoon' | 'solstice' | 'equinox';
+  date: string;
+  endDate?: string;
+  peakTime: string;
+  description: string;
+  magnitude?: number;
+  visibility: {
+    northern: 'full' | 'partial' | 'none';
+    southern: 'full' | 'partial' | 'none';
+    tropical: 'full' | 'partial' | 'none';
+  };
+  tips: string[];
+  equipment: string[];
+}
+
+export function getUpcomingAstronomicalEvents(): AstronomicalEvent[] {
+  const now = new Date();
+  const year = now.getFullYear();
+  
+  // Accurate astronomical events for 2026
+  const events: AstronomicalEvent[] = [
+    {
+      id: 'quadrantids-2026',
+      name: 'Quadrantids Meteor Shower',
+      type: 'meteor_shower',
+      date: `${year}-01-03`,
+      endDate: `${year}-01-04`,
+      peakTime: '03:00 - 05:00 UTC',
+      description: 'One of the best annual meteor showers, producing up to 120 meteors per hour at peak. Best viewed from the Northern Hemisphere.',
+      magnitude: 2.0,
+      visibility: { northern: 'full', southern: 'none', tropical: 'partial' },
+      tips: [
+        'Best viewed after midnight',
+        'Look toward the northeast sky',
+        'Find a dark location away from city lights',
+        'Allow 20 minutes for eyes to adjust'
+      ],
+      equipment: ['Naked eye viewing', 'Reclining chair or blanket', 'Warm clothing']
+    },
+    {
+      id: 'total-lunar-eclipse-mar-2026',
+      name: 'Total Lunar Eclipse',
+      type: 'eclipse',
+      date: `${year}-03-03`,
+      peakTime: '11:33 UTC',
+      description: 'A total lunar eclipse visible from the Americas, Europe, and Africa. The Moon will turn a deep red color during totality.',
+      visibility: { northern: 'full', southern: 'partial', tropical: 'full' },
+      tips: [
+        'Safe to view with naked eyes',
+        'Best viewed during totality phase',
+        'Red color most visible during full eclipse',
+        'Photography opportunities during Blood Moon phase'
+      ],
+      equipment: ['Naked eye', 'Binoculars for detail', 'Camera with tripod']
+    },
+    {
+      id: 'partial-solar-eclipse-mar-2026',
+      name: 'Partial Solar Eclipse',
+      type: 'eclipse',
+      date: `${year}-03-29`,
+      peakTime: '10:47 UTC',
+      description: 'A partial solar eclipse visible from parts of Europe, northern Africa, and western Asia.',
+      visibility: { northern: 'partial', southern: 'none', tropical: 'partial' },
+      tips: [
+        'NEVER look directly at the sun without proper eye protection',
+        'Use ISO-certified eclipse glasses',
+        'Pinhole projector is a safe alternative',
+        'Peak coverage varies by location'
+      ],
+      equipment: ['ISO-certified eclipse glasses', 'Solar filter for camera', 'Pinhole projector']
+    },
+    {
+      id: 'lyrids-2026',
+      name: 'Lyrids Meteor Shower',
+      type: 'meteor_shower',
+      date: `${year}-04-22`,
+      endDate: `${year}-04-23`,
+      peakTime: '04:00 - 06:00 UTC',
+      description: 'One of the oldest known meteor showers, producing up to 20 meteors per hour. Known for occasional bright fireballs.',
+      magnitude: 2.1,
+      visibility: { northern: 'full', southern: 'partial', tropical: 'partial' },
+      tips: [
+        'Look toward the constellation Lyra',
+        'Best after midnight',
+        'Moon phase affects visibility',
+        'Watch for bright fireballs'
+      ],
+      equipment: ['Naked eye viewing', 'Star chart app']
+    },
+    {
+      id: 'eta-aquariids-2026',
+      name: 'Eta Aquariids Meteor Shower',
+      type: 'meteor_shower',
+      date: `${year}-05-06`,
+      endDate: `${year}-05-07`,
+      peakTime: '03:00 - 05:00 UTC',
+      description: 'Debris from Halley\'s Comet produces up to 50 meteors per hour. Better viewed from Southern Hemisphere.',
+      magnitude: 2.4,
+      visibility: { northern: 'partial', southern: 'full', tropical: 'full' },
+      tips: [
+        'Southern Hemisphere has best views',
+        'Look toward the constellation Aquarius',
+        'Pre-dawn hours are optimal',
+        'Fast meteors at 66 km/s'
+      ],
+      equipment: ['Naked eye viewing', 'Warm blanket']
+    },
+    {
+      id: 'summer-solstice-2026',
+      name: 'Summer Solstice',
+      type: 'solstice',
+      date: `${year}-06-21`,
+      peakTime: '05:24 UTC',
+      description: 'The longest day of the year in the Northern Hemisphere, marking the official start of summer.',
+      visibility: { northern: 'full', southern: 'full', tropical: 'full' },
+      tips: [
+        'Longest daylight hours of the year',
+        'Sun reaches highest point in the sky',
+        'Shortest night for stargazing',
+        'Traditional celebration time worldwide'
+      ],
+      equipment: ['Sundial', 'Shadow measurements']
+    },
+    {
+      id: 'perseids-2026',
+      name: 'Perseids Meteor Shower',
+      type: 'meteor_shower',
+      date: `${year}-08-12`,
+      endDate: `${year}-08-13`,
+      peakTime: '02:00 - 04:00 UTC',
+      description: 'The most popular meteor shower of the year, producing up to 100 meteors per hour during peak.',
+      magnitude: 2.0,
+      visibility: { northern: 'full', southern: 'partial', tropical: 'partial' },
+      tips: [
+        'Best meteor shower for Northern Hemisphere',
+        'Look toward the constellation Perseus',
+        'Peak viewing after midnight',
+        'Warm summer nights make viewing comfortable'
+      ],
+      equipment: ['Naked eye viewing', 'Camera for long exposures', 'Blanket or reclining chair']
+    },
+    {
+      id: 'annular-solar-eclipse-feb-2026',
+      name: 'Annular Solar Eclipse',
+      type: 'eclipse',
+      date: `${year}-02-17`,
+      peakTime: '12:13 UTC',
+      description: 'An annular "ring of fire" solar eclipse visible from Antarctica and southern South America.',
+      visibility: { northern: 'none', southern: 'partial', tropical: 'none' },
+      tips: [
+        'Visible only from far southern latitudes',
+        'Creates "ring of fire" effect',
+        'Use proper solar viewing glasses',
+        'Plan travel to viewing location early'
+      ],
+      equipment: ['ISO-certified eclipse glasses', 'Solar filter telescope']
+    },
+    {
+      id: 'total-solar-eclipse-aug-2026',
+      name: 'Total Solar Eclipse',
+      type: 'eclipse',
+      date: `${year}-08-12`,
+      peakTime: '17:47 UTC',
+      description: 'A spectacular total solar eclipse visible from Greenland, Iceland, and Spain. Path of totality crosses the Atlantic.',
+      visibility: { northern: 'full', southern: 'none', tropical: 'none' },
+      tips: [
+        'Path of totality crosses Iceland and Spain',
+        'Corona visible during totality',
+        'Temperature drops during totality',
+        'Book travel and accommodation early'
+      ],
+      equipment: ['ISO-certified eclipse glasses', 'Solar filter telescope', 'Camera with solar filter']
+    },
+    {
+      id: 'geminids-2026',
+      name: 'Geminids Meteor Shower',
+      type: 'meteor_shower',
+      date: `${year}-12-14`,
+      endDate: `${year}-12-15`,
+      peakTime: '01:00 - 03:00 UTC',
+      description: 'The king of meteor showers, producing up to 150 multicolored meteors per hour.',
+      magnitude: 2.6,
+      visibility: { northern: 'full', southern: 'partial', tropical: 'partial' },
+      tips: [
+        'Best meteor shower of the year',
+        'Visible from both hemispheres',
+        'Multicolored meteors',
+        'Bright moonlight may affect visibility in 2026'
+      ],
+      equipment: ['Naked eye viewing', 'Warm winter clothing', 'Hot beverages']
+    },
+    {
+      id: 'winter-solstice-2026',
+      name: 'Winter Solstice',
+      type: 'solstice',
+      date: `${year}-12-21`,
+      peakTime: '15:50 UTC',
+      description: 'The shortest day of the year in the Northern Hemisphere, marking the official start of winter.',
+      visibility: { northern: 'full', southern: 'full', tropical: 'full' },
+      tips: [
+        'Shortest daylight hours of the year',
+        'Longest night for stargazing',
+        'Sun at lowest point in sky',
+        'Ancient celebration traditions'
+      ],
+      equipment: ['Sundial', 'Shadow measurements']
+    }
+  ];
+  
+  // Filter to upcoming events and sort by date
+  return events
+    .filter(event => new Date(event.date) >= new Date(now.toISOString().split('T')[0]))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+}
+
+// Combined Sky Events API with real-time aurora data
+export async function fetchSkyEvents(): Promise<{
+  events: AstronomicalEvent[];
+  aurora: AuroraForecast;
+  storms: GeomagneticStorm[];
+}> {
+  const [aurora, storms] = await Promise.all([
+    fetchAuroraForecast(),
+    fetchGeomagneticStorms(),
+  ]);
+  
+  const events = getUpcomingAstronomicalEvents();
+  
+  // Add dynamic aurora event if activity is moderate or higher
+  if (aurora.auroraActivity !== 'none' && aurora.auroraActivity !== 'low') {
+    const auroraEvent: AstronomicalEvent = {
+      id: 'aurora-live',
+      name: `Aurora Borealis Alert (Kp ${aurora.kpIndex})`,
+      type: 'aurora',
+      date: new Date().toISOString().split('T')[0],
+      peakTime: 'Tonight 22:00 - 03:00 local time',
+      description: `Current geomagnetic conditions are favorable for aurora viewing. Kp index: ${aurora.kpIndex}. Aurora may be visible down to ${aurora.visibleLatitude}° latitude.`,
+      visibility: {
+        northern: aurora.visibleLatitude <= 60 ? 'full' : aurora.visibleLatitude <= 65 ? 'partial' : 'none',
+        southern: 'none',
+        tropical: 'none',
+      },
+      tips: [
+        'Check local weather for clear skies',
+        'Travel to dark location away from city lights',
+        'Best viewing after 10 PM local time',
+        'Aurora can appear and fade quickly'
+      ],
+      equipment: ['Naked eye', 'Camera with wide-angle lens', 'Tripod for photography']
+    };
+    events.unshift(auroraEvent);
+  }
+  
+  return { events, aurora, storms };
+}

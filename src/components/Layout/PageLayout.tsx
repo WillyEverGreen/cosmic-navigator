@@ -12,6 +12,7 @@ import {
   Home,
   ArrowLeft,
   Sparkles,
+  Map,
 } from 'lucide-react';
 
 import Starfield from '@/components/SpaceScope/Starfield';
@@ -30,6 +31,7 @@ const navItems = [
   { icon: Sparkles, label: 'APOD', href: '/dashboard/apod' },
   { icon: Newspaper, label: 'News', href: '/dashboard/news' },
   { icon: Rocket, label: 'Missions', href: '/dashboard/missions' },
+  { icon: Map, label: 'Sky Events Map', href: '/dashboard/skymap' },
 ];
 
 const PageLayout = ({ children, title, subtitle }: PageLayoutProps) => {

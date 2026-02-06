@@ -10,6 +10,7 @@ import SpaceWeatherPage from "./pages/SpaceWeatherPage";
 import APODPage from "./pages/APODPage";
 import NewsPage from "./pages/NewsPage";
 import MissionsPage from "./pages/MissionsPage";
+import SkyEventsMapPage from "./pages/SkyEventsMapPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/dashboard/apod" element={<APODPage />} />
           <Route path="/dashboard/news" element={<NewsPage />} />
           <Route path="/dashboard/missions" element={<MissionsPage />} />
+          <Route path="/dashboard/skymap" element={<SkyEventsMapPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
