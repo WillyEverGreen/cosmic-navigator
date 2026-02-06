@@ -1,38 +1,38 @@
-import { motion } from 'framer-motion';
-import { GraduationCap, HelpCircle, BarChart3, Microscope } from 'lucide-react';
-import { useRef } from 'react';
+import { motion } from "framer-motion";
+import { GraduationCap, HelpCircle, BarChart3, Microscope } from "lucide-react";
+import { useRef } from "react";
 
 const cards = [
   {
-    title: 'Space 101',
-    description: 'Start your cosmic journey with fundamentals',
+    title: "Space 101",
+    description: "Start your cosmic journey with fundamentals",
     icon: GraduationCap,
-    colorClass: 'from-cosmic-glow to-cosmic-purple',
-    bgClass: 'bg-cosmic-glow/10',
+    colorClass: "bg-cosmic-glow",
+    bgClass: "bg-cosmic-glow/10",
     delay: 0,
   },
   {
-    title: 'Quick Quizzes',
-    description: 'Test your knowledge of the cosmos',
+    title: "Quick Quizzes",
+    description: "Test your knowledge of the cosmos",
     icon: HelpCircle,
-    colorClass: 'from-cosmic-purple to-cosmic-pink',
-    bgClass: 'bg-cosmic-purple/10',
+    colorClass: "bg-cosmic-purple",
+    bgClass: "bg-cosmic-purple/10",
     delay: 0.1,
   },
   {
-    title: 'Visual Guides',
-    description: 'Beautiful infographics & diagrams',
+    title: "Visual Guides",
+    description: "Beautiful infographics & diagrams",
     icon: BarChart3,
-    colorClass: 'from-cosmic-pink to-cosmic-gold',
-    bgClass: 'bg-cosmic-pink/10',
+    colorClass: "bg-cosmic-pink",
+    bgClass: "bg-cosmic-pink/10",
     delay: 0.2,
   },
   {
-    title: 'Real Examples',
-    description: 'See space science in action',
+    title: "Real Examples",
+    description: "See space science in action",
     icon: Microscope,
-    colorClass: 'from-green-500 to-cosmic-glow',
-    bgClass: 'bg-green-500/10',
+    colorClass: "bg-green-500",
+    bgClass: "bg-green-500/10",
     delay: 0.3,
   },
 ];
@@ -51,7 +51,9 @@ const LearningZone = () => {
         >
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cosmic-glow/10 border border-cosmic-glow/20 mb-4">
             <GraduationCap className="w-4 h-4 text-cosmic-glow" />
-            <span className="text-sm text-cosmic-glow font-medium">Learning Zone</span>
+            <span className="text-sm text-cosmic-glow font-medium">
+              Learning Zone
+            </span>
           </div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-4">
             <span className="text-star-white">Made for </span>
@@ -74,7 +76,7 @@ const LearningZone = () => {
 };
 
 interface CardProps {
-  card: typeof cards[0];
+  card: (typeof cards)[0];
 }
 
 const MagneticCard = ({ card }: CardProps) => {
@@ -82,20 +84,21 @@ const MagneticCard = ({ card }: CardProps) => {
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
-    
+
     const rect = cardRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
-    
+
     const rotateX = (y / rect.height) * -8;
     const rotateY = (x / rect.width) * 8;
-    
+
     cardRef.current.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
   };
 
   const handleMouseLeave = () => {
     if (!cardRef.current) return;
-    cardRef.current.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)';
+    cardRef.current.style.transform =
+      "perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)";
   };
 
   return (
@@ -108,44 +111,48 @@ const MagneticCard = ({ card }: CardProps) => {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       className="glass-card-hover p-6 cursor-pointer group"
-      style={{ 
-        transition: 'transform 0.15s ease-out, border-color 0.5s, box-shadow 0.5s',
-        transformStyle: 'preserve-3d',
+      style={{
+        transition:
+          "transform 0.15s ease-out, border-color 0.5s, box-shadow 0.5s",
+        transformStyle: "preserve-3d",
       }}
     >
       {/* Icon container */}
       <motion.div
         className={`w-14 h-14 rounded-2xl ${card.bgClass} flex items-center justify-center mb-4`}
-        style={{ transform: 'translateZ(30px)' }}
+        style={{ transform: "translateZ(30px)" }}
       >
-        <card.icon className={`w-7 h-7 bg-gradient-to-br ${card.colorClass} bg-clip-text text-transparent`} 
-          style={{ color: 'currentColor' }}
+        <card.icon
+          className={`w-7 h-7 ${card.colorClass.replace("bg-", "text-")}`}
+          style={{ color: "currentColor" }}
         />
-        <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${card.colorClass} opacity-0 group-hover:opacity-20 transition-opacity duration-300`} />
+        <div
+          className={`absolute inset-0 rounded-2xl ${card.colorClass} opacity-0 group-hover:opacity-20 transition-opacity duration-300`}
+        />
       </motion.div>
 
       {/* Content */}
-      <div style={{ transform: 'translateZ(20px)' }}>
-        <h3 className="text-xl font-heading font-bold text-star-white mb-2 group-hover:text-gradient transition-all duration-300">
+      <div style={{ transform: "translateZ(20px)" }}>
+        <h3 className="text-xl font-heading font-bold text-star-white mb-2 group-hover:text-cosmic-glow transition-all duration-300">
           {card.title}
         </h3>
-        <p className="text-muted-foreground text-sm">
-          {card.description}
-        </p>
+        <p className="text-muted-foreground text-sm">{card.description}</p>
       </div>
 
       {/* Hover indicator */}
       <motion.div
         className="mt-4 flex items-center gap-2 text-sm"
-        style={{ transform: 'translateZ(15px)' }}
+        style={{ transform: "translateZ(15px)" }}
       >
         <span className="text-cosmic-glow opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           Explore →
         </span>
       </motion.div>
 
-      {/* Background glow on hover */}
-      <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${card.colorClass} opacity-0 group-hover:opacity-5 transition-opacity duration-500 -z-10 blur-xl`} />
+      {/* Background glow on hover (Removed gradient) */}
+      <div
+        className={`absolute inset-0 rounded-2xl ${card.colorClass} opacity-0 group-hover:opacity-5 transition-opacity duration-500 -z-10 blur-xl`}
+      />
     </motion.div>
   );
 };

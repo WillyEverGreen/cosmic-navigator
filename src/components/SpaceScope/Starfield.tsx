@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 interface Star {
   x: number;
@@ -17,7 +17,7 @@ const Starfield = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     const resizeCanvas = () => {
@@ -27,8 +27,10 @@ const Starfield = () => {
 
     const createStars = () => {
       const stars: Star[] = [];
-      const starCount = Math.floor((window.innerWidth * window.innerHeight) / 8000);
-      
+      const starCount = Math.floor(
+        (window.innerWidth * window.innerHeight) / 8000,
+      );
+
       for (let i = 0; i < starCount; i++) {
         stars.push({
           x: Math.random() * canvas.width,
@@ -52,28 +54,28 @@ const Starfield = () => {
 
       starsRef.current.forEach((star) => {
         // Parallax effect based on mouse position
-        const parallaxX = (mouseRef.current.x - canvas.width / 2) * star.speed * 0.01;
-        const parallaxY = (mouseRef.current.y - canvas.height / 2) * star.speed * 0.01;
+        const parallaxX =
+          (mouseRef.current.x - canvas.width / 2) * star.speed * 0.01;
+        const parallaxY =
+          (mouseRef.current.y - canvas.height / 2) * star.speed * 0.01;
 
         const x = star.x + parallaxX;
         const y = star.y + parallaxY;
 
         // Twinkling effect
-        const twinkle = Math.sin(Date.now() * 0.001 * star.speed + star.x) * 0.3 + 0.7;
+        const twinkle =
+          Math.sin(Date.now() * 0.001 * star.speed + star.x) * 0.3 + 0.7;
 
         ctx.beginPath();
         ctx.arc(x, y, star.size, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(241, 245, 249, ${star.opacity * twinkle})`;
         ctx.fill();
 
-        // Add glow effect for larger stars
+        // Add subtle glow for larger stars (Removed gradient)
         if (star.size > 1.5) {
           ctx.beginPath();
           ctx.arc(x, y, star.size * 3, 0, Math.PI * 2);
-          const gradient = ctx.createRadialGradient(x, y, 0, x, y, star.size * 3);
-          gradient.addColorStop(0, `rgba(99, 102, 241, ${star.opacity * 0.3 * twinkle})`);
-          gradient.addColorStop(1, 'transparent');
-          ctx.fillStyle = gradient;
+          ctx.fillStyle = `rgba(99, 102, 241, ${star.opacity * 0.1 * twinkle})`;
           ctx.fill();
         }
       });
@@ -85,15 +87,15 @@ const Starfield = () => {
     createStars();
     animate();
 
-    window.addEventListener('resize', () => {
+    window.addEventListener("resize", () => {
       resizeCanvas();
       createStars();
     });
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove);
 
     return () => {
-      window.removeEventListener('resize', resizeCanvas);
-      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener("resize", resizeCanvas);
+      window.removeEventListener("mousemove", handleMouseMove);
     };
   }, []);
 
@@ -101,7 +103,7 @@ const Starfield = () => {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none z-0"
-      style={{ background: 'transparent' }}
+      style={{ background: "transparent" }}
     />
   );
 };

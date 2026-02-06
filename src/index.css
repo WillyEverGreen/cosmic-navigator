@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -11,36 +11,36 @@
     /* Core Space Palette */
     --background: 230 60% 6%;
     --foreground: 210 40% 96%;
-    
+
     --card: 230 45% 10%;
     --card-foreground: 210 40% 96%;
-    
+
     --popover: 230 50% 8%;
     --popover-foreground: 210 40% 96%;
-    
+
     /* Brand Colors */
     --primary: 239 84% 67%;
     --primary-foreground: 210 40% 98%;
-    
+
     --secondary: 263 70% 50%;
     --secondary-foreground: 210 40% 98%;
-    
+
     --accent: 330 81% 60%;
     --accent-foreground: 210 40% 98%;
-    
+
     --muted: 230 30% 15%;
     --muted-foreground: 215 20% 65%;
-    
+
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-    
+
     /* UI Elements */
     --border: 230 30% 20%;
     --input: 230 30% 15%;
     --ring: 239 84% 67%;
-    
+
     --radius: 0.75rem;
-    
+
     /* Custom Space Colors */
     --space-navy: 230 60% 6%;
     --space-deep: 235 50% 4%;
@@ -49,17 +49,17 @@
     --aurora-pink: 330 81% 60%;
     --star-white: 210 40% 96%;
     --meteor-gold: 45 93% 58%;
-    
-    /* Gradients */
-    --gradient-cosmic: linear-gradient(135deg, hsl(239 84% 67%) 0%, hsl(263 70% 50%) 50%, hsl(330 81% 60%) 100%);
-    --gradient-aurora: linear-gradient(180deg, hsl(263 70% 50% / 0.3) 0%, transparent 100%);
-    --gradient-space: radial-gradient(ellipse at center, hsl(230 45% 12%) 0%, hsl(230 60% 6%) 70%);
-    
+
+    /* Gradients (Removed) */
+    --gradient-cosmic: hsl(239 84% 67%);
+    --gradient-aurora: hsl(263 70% 50% / 0.3);
+    --gradient-space: hsl(230 45% 12%);
+
     /* Shadows & Glows */
     --glow-primary: 0 0 30px hsl(239 84% 67% / 0.4);
     --glow-accent: 0 0 30px hsl(330 81% 60% / 0.4);
     --glow-soft: 0 0 60px hsl(239 84% 67% / 0.2);
-    
+
     /* Sidebar */
     --sidebar-background: 230 45% 8%;
     --sidebar-foreground: 210 40% 96%;
@@ -92,7 +92,12 @@
     overflow-x: hidden;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-heading font-bold tracking-tight;
   }
 
@@ -148,10 +153,15 @@
   }
 
   .btn-cosmic::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(45deg, transparent 40%, hsl(var(--star-white) / 0.2) 50%, transparent 60%);
+    background: linear-gradient(
+      45deg,
+      transparent 40%,
+      hsl(var(--star-white) / 0.2) 50%,
+      transparent 60%
+    );
     transform: translateX(-100%);
     transition: transform 0.6s ease;
   }
@@ -173,10 +183,9 @@
     box-shadow: var(--glow-soft);
   }
 
-  /* Text Gradient */
+  /* Text Gradient (Removed) */
   .text-gradient {
-    @apply bg-clip-text text-transparent;
-    background-image: var(--gradient-cosmic);
+    @apply text-cosmic-glow;
   }
 
   /* Section Styles */
@@ -187,19 +196,44 @@
   /* Star Field Background */
   .starfield {
     @apply fixed inset-0 pointer-events-none;
-    background-image: 
-      radial-gradient(2px 2px at 20px 30px, hsl(var(--star-white) / 0.8), transparent),
-      radial-gradient(2px 2px at 40px 70px, hsl(var(--star-white) / 0.6), transparent),
-      radial-gradient(1px 1px at 90px 40px, hsl(var(--star-white) / 0.9), transparent),
-      radial-gradient(2px 2px at 130px 80px, hsl(var(--star-white) / 0.5), transparent),
-      radial-gradient(1px 1px at 160px 120px, hsl(var(--star-white) / 0.7), transparent);
+    background-image:
+      radial-gradient(
+        2px 2px at 20px 30px,
+        hsl(var(--star-white) / 0.8),
+        transparent
+      ),
+      radial-gradient(
+        2px 2px at 40px 70px,
+        hsl(var(--star-white) / 0.6),
+        transparent
+      ),
+      radial-gradient(
+        1px 1px at 90px 40px,
+        hsl(var(--star-white) / 0.9),
+        transparent
+      ),
+      radial-gradient(
+        2px 2px at 130px 80px,
+        hsl(var(--star-white) / 0.5),
+        transparent
+      ),
+      radial-gradient(
+        1px 1px at 160px 120px,
+        hsl(var(--star-white) / 0.7),
+        transparent
+      );
     background-size: 200px 200px;
     animation: twinkle 4s ease-in-out infinite alternate;
   }
 
   @keyframes twinkle {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
+    0%,
+    100% {
+      opacity: 0.5;
+    }
+    50% {
+      opacity: 1;
+    }
   }
 
   /* Floating Animation */
@@ -208,8 +242,13 @@
   }
 
   @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
   }
 
   /* Glow Pulse */
@@ -218,8 +257,13 @@
   }
 
   @keyframes glowPulse {
-    0%, 100% { box-shadow: var(--glow-primary); }
-    50% { box-shadow: 0 0 60px hsl(var(--cosmic-glow) / 0.6); }
+    0%,
+    100% {
+      box-shadow: var(--glow-primary);
+    }
+    50% {
+      box-shadow: 0 0 60px hsl(var(--cosmic-glow) / 0.6);
+    }
   }
 
   /* Orbit Animation */
@@ -228,8 +272,12 @@
   }
 
   @keyframes orbit {
-    from { transform: rotate(0deg) translateX(150px) rotate(0deg); }
-    to { transform: rotate(360deg) translateX(150px) rotate(-360deg); }
+    from {
+      transform: rotate(0deg) translateX(150px) rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg) translateX(150px) rotate(-360deg);
+    }
   }
 
   /* Meteor Animation */
@@ -238,28 +286,31 @@
   }
 
   @keyframes meteor {
-    0% { transform: translateX(0) translateY(0); opacity: 1; }
-    100% { transform: translateX(-300px) translateY(300px); opacity: 0; }
+    0% {
+      transform: translateX(0) translateY(0);
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(-300px) translateY(300px);
+      opacity: 0;
+    }
   }
 
-  /* Aurora Effect */
+  /* Aurora Effect (Simplified) */
   .aurora {
     @apply absolute inset-0 pointer-events-none opacity-30;
-    background: linear-gradient(
-      180deg,
-      transparent 0%,
-      hsl(var(--nebula-purple) / 0.2) 30%,
-      hsl(var(--cosmic-glow) / 0.1) 50%,
-      hsl(var(--aurora-pink) / 0.2) 70%,
-      transparent 100%
-    );
+    background: hsl(var(--nebula-purple) / 0.1);
     filter: blur(60px);
     animation: aurora 8s ease-in-out infinite alternate;
   }
 
   @keyframes aurora {
-    0% { transform: translateY(-10%) scale(1); }
-    100% { transform: translateY(10%) scale(1.1); }
+    0% {
+      transform: translateY(-10%) scale(1);
+    }
+    100% {
+      transform: translateY(10%) scale(1.1);
+    }
   }
 
   /* Noise Grain Overlay */
@@ -268,10 +319,10 @@
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
   }
 
-  /* Vignette Effect */
+  /* Vignette Effect (Simplified) */
   .vignette {
     @apply fixed inset-0 pointer-events-none;
-    background: radial-gradient(ellipse at center, transparent 40%, hsl(var(--space-deep)) 100%);
+    background: transparent;
   }
 }
 
@@ -283,5 +334,15 @@
   .border-glow {
     border: 1px solid hsl(var(--cosmic-glow) / 0.3);
     box-shadow: inset 0 0 20px hsl(var(--cosmic-glow) / 0.1);
+  }
+
+  /* Hide scrollbar while keeping functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }

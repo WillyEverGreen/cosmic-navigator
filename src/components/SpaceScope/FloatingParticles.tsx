@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
-import { useMemo } from 'react';
+import { motion } from "framer-motion";
+import { useMemo } from "react";
 
 interface Particle {
   id: number;
@@ -37,7 +37,7 @@ const FloatingParticles = () => {
             top: `${particle.y}%`,
             width: particle.size,
             height: particle.size,
-            background: `radial-gradient(circle, rgba(99, 102, 241, 0.6) 0%, transparent 70%)`,
+            backgroundColor: "rgba(99, 102, 241, 0.4)",
           }}
           animate={{
             y: [0, -100, 0],
@@ -49,7 +49,7 @@ const FloatingParticles = () => {
             duration: particle.duration,
             delay: particle.delay,
             repeat: Infinity,
-            ease: 'easeInOut',
+            ease: "easeInOut",
           }}
         />
       ))}

@@ -1,146 +1,189 @@
-import { motion } from 'framer-motion';
+import { useRef, Suspense, useMemo } from "react";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
+import { Float, Html, Stars } from "@react-three/drei";
+import * as THREE from "three";
+
+// NASA Blue Marble Earth textures (public domain, served via unpkg CDN)
+const EARTH_TEXTURE =
+  "https://unpkg.com/three-globe@2.41.12/example/img/earth-blue-marble.jpg";
+const EARTH_BUMP =
+  "https://unpkg.com/three-globe@2.41.12/example/img/earth-topology.png";
+const EARTH_SPECULAR =
+  "https://unpkg.com/three-globe@2.41.12/example/img/earth-water.png";
+
+const EarthModel = () => {
+  const earthRef = useRef<THREE.Mesh>(null);
+  const atmosphereRef = useRef<THREE.Mesh>(null);
+  const glowRef = useRef<THREE.Mesh>(null);
+
+  const [earthMap, bumpMap, specularMap] = useLoader(THREE.TextureLoader, [
+    EARTH_TEXTURE,
+    EARTH_BUMP,
+    EARTH_SPECULAR,
+  ]);
+
+  useFrame(() => {
+    if (earthRef.current) {
+      earthRef.current.rotation.y += 0.001;
+    }
+  });
+
+  return (
+    <group>
+      {/* Earth sphere with real NASA textures */}
+      <mesh ref={earthRef} castShadow receiveShadow>
+        <sphereGeometry args={[8, 128, 128]} />
+        <meshStandardMaterial
+          map={earthMap}
+          bumpMap={bumpMap}
+          bumpScale={0.04}
+          roughnessMap={specularMap}
+          roughness={0.85}
+          metalness={0.15}
+          envMapIntensity={0.5}
+        />
+      </mesh>
+
+      {/* Inner atmospheric glow */}
+      <mesh scale={1.012}>
+        <sphereGeometry args={[8, 64, 64]} />
+        <meshBasicMaterial
+          color="#a8d8f5"
+          transparent
+          opacity={0.05}
+          side={THREE.FrontSide}
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* Atmospheric glow - middle layer */}
+      <mesh ref={glowRef} scale={1.02}>
+        <sphereGeometry args={[8, 64, 64]} />
+        <meshPhongMaterial
+          color="#6db8f2"
+          transparent
+          opacity={0.12}
+          side={THREE.BackSide}
+          depthWrite={false}
+          emissive={new THREE.Color("#4a9fd9")}
+          emissiveIntensity={0.1}
+        />
+      </mesh>
+
+      {/* Atmospheric rim light - outer */}
+      <mesh ref={atmosphereRef} scale={1.035}>
+        <sphereGeometry args={[8, 64, 64]} />
+        <meshPhongMaterial
+          color="#88c5f5"
+          transparent
+          opacity={0.06}
+          side={THREE.BackSide}
+          emissive={new THREE.Color("#5eb0e8")}
+          emissiveIntensity={0.15}
+          depthWrite={false}
+        />
+      </mesh>
+    </group>
+  );
+};
+
+const MoonModel = () => {
+  const moonRef = useRef<THREE.Mesh>(null);
+  const orbitRef = useRef<THREE.Group>(null);
+
+  useFrame((state) => {
+    const time = state.clock.getElapsedTime() * 0.25;
+    if (orbitRef.current) {
+      orbitRef.current.rotation.y = time;
+    }
+    if (moonRef.current) {
+      moonRef.current.rotation.y += 0.003;
+    }
+  });
+
+  // Orbit ring
+  const orbitRingGeometry = useMemo(() => {
+    return new THREE.RingGeometry(13.8, 14, 128);
+  }, []);
+
+  return (
+    <>
+      {/* Subtle orbit path ring */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <primitive object={orbitRingGeometry} attach="geometry" />
+        <meshBasicMaterial
+          color="#6366f1"
+          transparent
+          opacity={0.1}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Moon orbit group */}
+      <group ref={orbitRef}>
+        <mesh ref={moonRef} position={[14, 0, 0]}>
+          <sphereGeometry args={[1.2, 48, 48]} />
+          <meshPhongMaterial
+            color="#d4d4d4"
+            emissive="#3a3a3a"
+            emissiveIntensity={0.2}
+            shininess={2}
+          />
+        </mesh>
+      </group>
+    </>
+  );
+};
+
+const Loader = () => (
+  <Html center>
+    <div
+      style={{ color: "#6366f1", fontSize: "14px", fontWeight: 500 }}
+      className="animate-pulse"
+    >
+      Loading Earth...
+    </div>
+  </Html>
+);
 
 const Earth = () => {
   return (
-    <div className="relative w-[300px] h-[300px] md:w-[450px] md:h-[450px] lg:w-[550px] lg:h-[550px]">
-      {/* Outer glow */}
-      <div className="absolute inset-[-20%] rounded-full bg-gradient-to-r from-cosmic-glow/20 via-cosmic-purple/10 to-transparent blur-3xl animate-pulse-glow" />
-      
-      {/* Atmosphere glow */}
-      <motion.div
-        className="absolute inset-[-8%] rounded-full"
-        style={{
-          background: 'radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, rgba(139, 92, 246, 0.2) 40%, transparent 70%)',
-        }}
-        animate={{
-          scale: [1, 1.05, 1],
-          opacity: [0.6, 0.8, 0.6],
-        }}
-        transition={{
-          duration: 4,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-
-      {/* Earth sphere */}
-      <motion.div
-        className="relative w-full h-full rounded-full overflow-hidden"
-        animate={{ rotate: 360 }}
-        transition={{
-          duration: 60,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-        style={{
-          background: `
-            radial-gradient(circle at 30% 30%, 
-              hsl(217, 91%, 60%) 0%, 
-              hsl(221, 83%, 53%) 20%,
-              hsl(224, 76%, 48%) 40%, 
-              hsl(230, 60%, 30%) 70%,
-              hsl(230, 60%, 15%) 100%
-            )
-          `,
-          boxShadow: `
-            inset -30px -30px 60px rgba(0, 0, 0, 0.5),
-            inset 20px 20px 40px rgba(99, 102, 241, 0.3)
-          `,
-        }}
+    <div className="relative w-[400px] h-[400px] md:w-[550px] md:h-[550px] lg:w-[650px] lg:h-[650px] flex items-center justify-center">
+      <Canvas
+        className="w-full h-full block"
+        camera={{ position: [0, 0, 28], fov: 45 }}
+        gl={{ antialias: true, alpha: true }}
+        style={{ background: "transparent" }}
       >
-        {/* Land masses - stylized patterns */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `
-              radial-gradient(ellipse 40% 30% at 25% 40%, rgba(34, 197, 94, 0.4) 0%, transparent 100%),
-              radial-gradient(ellipse 30% 25% at 60% 35%, rgba(34, 197, 94, 0.35) 0%, transparent 100%),
-              radial-gradient(ellipse 25% 40% at 75% 60%, rgba(34, 197, 94, 0.3) 0%, transparent 100%),
-              radial-gradient(ellipse 35% 20% at 40% 70%, rgba(34, 197, 94, 0.35) 0%, transparent 100%)
-            `,
-          }}
-        />
+        <Suspense fallback={<Loader />}>
+          {/* Lighting */}
+          <ambientLight intensity={0.4} />
+          <directionalLight
+            position={[12, 5, 8]}
+            intensity={3}
+            color="#ffffff"
+            castShadow
+          />
+          <hemisphereLight args={["#ffffff", "#4a90d9", 0.5]} />
+          <pointLight position={[-10, 0, -8]} intensity={0.5} color="#5a8fbd" />
 
-        {/* Cloud layer */}
-        <motion.div
-          className="absolute inset-0"
-          animate={{ rotate: -360 }}
-          transition={{
-            duration: 120,
-            repeat: Infinity,
-            ease: 'linear',
-          }}
-          style={{
-            background: `
-              radial-gradient(ellipse 20% 15% at 20% 30%, rgba(255, 255, 255, 0.4) 0%, transparent 100%),
-              radial-gradient(ellipse 15% 20% at 70% 40%, rgba(255, 255, 255, 0.3) 0%, transparent 100%),
-              radial-gradient(ellipse 25% 10% at 45% 65%, rgba(255, 255, 255, 0.35) 0%, transparent 100%),
-              radial-gradient(ellipse 10% 15% at 85% 70%, rgba(255, 255, 255, 0.25) 0%, transparent 100%)
-            `,
-          }}
-        />
+          <Float speed={0.8} rotationIntensity={0.15} floatIntensity={0.3}>
+            <EarthModel />
+            <MoonModel />
+          </Float>
 
-        {/* Highlight */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: 'radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.15) 0%, transparent 50%)',
-          }}
-        />
-      </motion.div>
-
-      {/* Aurora effect at poles */}
-      <motion.div
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[60%] h-[15%]"
-        animate={{
-          opacity: [0.3, 0.6, 0.3],
-          scaleX: [1, 1.1, 1],
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-        style={{
-          background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.5) 0%, rgba(236, 72, 153, 0.3) 50%, transparent 100%)',
-          borderRadius: '50% 50% 0 0',
-          filter: 'blur(8px)',
-        }}
-      />
-
-      {/* Orbiting satellite */}
-      <motion.div
-        className="absolute top-1/2 left-1/2 w-3 h-3"
-        animate={{ rotate: 360 }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-        style={{
-          transformOrigin: '-150px 0',
-        }}
-      >
-        <div className="w-3 h-3 bg-star-white rounded-full shadow-lg relative">
-          <div className="absolute inset-0 bg-cosmic-glow rounded-full animate-ping opacity-50" />
-        </div>
-      </motion.div>
-
-      {/* Second orbiting object */}
-      <motion.div
-        className="absolute top-1/2 left-1/2 w-2 h-2"
-        animate={{ rotate: -360 }}
-        transition={{
-          duration: 12,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-        style={{
-          transformOrigin: '120px 50px',
-        }}
-      >
-        <div className="w-2 h-2 bg-cosmic-pink rounded-full opacity-80" />
-      </motion.div>
+          {/* Background stars */}
+          <Stars
+            radius={100}
+            depth={50}
+            count={2000}
+            factor={4}
+            saturation={0}
+            fade
+            speed={1}
+          />
+        </Suspense>
+      </Canvas>
     </div>
   );
 };
